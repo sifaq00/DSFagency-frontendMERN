@@ -25,7 +25,7 @@ const TestimonialCard = ({ image, testimonial, author, index }) => {
       {/* IMAGE PLATE */}
       <div className="mb-4 rounded-xl bg-white/90 px-6 py-4">
         <img
-          src={`http://localhost:5000${image}`}
+          src={`${import.meta.env.VITE_API_URL.replace("/api", "")}${image}`}
           alt={author}
           className="w-auto h-44 object-contain"
         />

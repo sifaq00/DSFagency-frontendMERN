@@ -39,7 +39,7 @@ const ServiceCard = ({
       <div className="w-full h-40 md:h-48 flex justify-center items-center mb-4">
         <div className="w-full h-full rounded-xl p-4 flex items-center justify-center">
           <img
-            src={`http://localhost:5000${image}`}
+            src={`${import.meta.env.VITE_API_URL.replace("/api", "")}${image}`}
             alt={title}
             loading="lazy"
             className="w-full h-full object-contain"
