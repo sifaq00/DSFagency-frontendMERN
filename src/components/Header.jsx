@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
+import logoWhite from "../assets/logo-white.png";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -40,7 +41,7 @@ const Header = () => {
         {/* LOGO (BALIK ✅) */}
         <div className="flex items-center gap-3">
           <img
-            src="/src/assets/logo-white.png"
+            src={logoWhite}
             alt="Digital Agency Logo"
             className="w-[48px] h-auto"
           />
