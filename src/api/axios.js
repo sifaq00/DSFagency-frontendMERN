@@ -94,6 +94,30 @@ const api = {
       instance.delete(`/service-detail/${id}`, {
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       }),
+
+  getClients: () => instance.get("/client"),
+  addClient: (data) => {
+    const token = localStorage.getItem("token");
+    return instance.post("/client", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  updateClient: (id, data) => {
+    const token = localStorage.getItem("token");
+    return instance.put(`/client/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  deleteClient: (id) =>
+    instance.delete(`/client/${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
 };
 
 export default api;

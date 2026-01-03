@@ -11,12 +11,14 @@ import {
   FiMessageSquare,
   FiGrid,
   FiSettings,
+  FiUsers,
 } from "react-icons/fi"; // Tambahkan ikon-ikon yang diperlukan
 import AboutUsAdmin from "./admin/AboutUsAdmin";
 import ValuesAdmin from "./admin/ValuesAdmin";
 import TestimonialsAdmin from "./admin/TestimonialsAdmin";
 import ServiceCardAdmin from "./admin/ServiceCardAdmin";
 import ServiceDetailAdmin from "./admin/ServiceDetailAdmin";
+import ClientsAdmin from "./admin/ClientsAdmin";
 
 const DashboardContent = () => {
   useEffect(() => {
@@ -71,6 +73,7 @@ const Dashboard = () => {
               { name: "dashboard", icon: <FiHome className="text-lg" /> },
               { name: "about", icon: <FiInfo className="text-lg" /> },
               { name: "values", icon: <FiTarget className="text-lg" /> },
+              { name: "clients", icon: <FiUsers className="text-lg" /> },
               { name: "testimonials", icon: <FiMessageSquare className="text-lg" /> },
               { name: "service-card", icon: <FiGrid className="text-lg" /> },
               { name: "service-detail", icon: <FiSettings className="text-lg" /> },
@@ -115,6 +118,7 @@ const Dashboard = () => {
             {activeSection === "dashboard" && <DashboardContent />}
             {activeSection === "about" && <AboutUsAdmin />}
             {activeSection === "values" && <ValuesAdmin />}
+            {activeSection === "clients" && <ClientsAdmin />}
             {activeSection === "testimonials" && <TestimonialsAdmin />}
             {activeSection === "service-card" && <ServiceCardAdmin />}
             {activeSection === "service-detail" && <ServiceDetailAdmin />}

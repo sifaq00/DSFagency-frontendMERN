@@ -11,98 +11,100 @@ const getImageUrl = (imagePath) => {
   return `${baseUrl}${imagePath}`;
 };
 
-const TestimonialsAdmin = () => {
-  const [testimonials, setTestimonials] = useState([]);
-  const [author, setAuthor] = useState("");
-  const [content, setContent] = useState("");
-  const [image, setImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+const ClientsAdmin = () => {
+  const [clients, setClients] = useState([]);
+  const [name, setName] = useState("");
+  const [logo, setLogo] = useState(null);
+  const [previewLogo, setPreviewLogo] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [testimonialToDelete, setTestimonialToDelete] = useState(null);
+  const [clientToDelete, setClientToDelete] = useState(null);
   const [toast, setToast] = useState({ show: false, success: false, message: "" });
 
   useEffect(() => {
-    fetchTestimonials();
+    fetchClients();
   }, []);
 
-  const fetchTestimonials = async () => {
+  const fetchClients = async () => {
     try {
-      const response = await api.getTestimonials();
-      setTestimonials(response.data);
+      const response = await api.getClients();
+      setClients(response.data);
     } catch (error) {
-      console.error("Gagal mengambil data testimonial:", error);
-      showToast(false, "Gagal mengambil data testimonial.");
+      console.error("Gagal mengambil data clients:", error);
+      showToast(false, "Gagal mengambil data clients.");
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleLogoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImage(file);
-      setPreviewImage(URL.createObjectURL(file));
+      setLogo(file);
+      setPreviewLogo(URL.createObjectURL(file));
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!author.trim() || !content.trim()) {
-      showToast(false, "Nama dan pesan harus diisi!");
+    if (!name.trim()) {
+      showToast(false, "Nama client harus diisi!");
+      return;
+    }
+
+    if (!editingId && !logo) {
+      showToast(false, "Logo harus diupload!");
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append("author", author);
-      formData.append("content", content);
-      if (image) {
-        formData.append("image", image);
+      formData.append("name", name);
+      if (logo) {
+        formData.append("logo", logo);
       }
 
       if (editingId) {
-        await api.updateTestimonial(editingId, formData);
-        showToast(true, "Testimonial berhasil diperbarui!");
+        await api.updateClient(editingId, formData);
+        showToast(true, "Client berhasil diperbarui!");
       } else {
-        await api.addTestimonial(formData);
-        showToast(true, "Testimonial berhasil ditambahkan!");
+        await api.addClient(formData);
+        showToast(true, "Client berhasil ditambahkan!");
       }
 
       resetForm();
-      fetchTestimonials();
+      fetchClients();
     } catch (error) {
-      console.error("Gagal menyimpan testimonial:", error);
-      showToast(false, "Gagal menyimpan testimonial.");
+      console.error("Gagal menyimpan client:", error);
+      showToast(false, "Gagal menyimpan client.");
     }
   };
 
-  const handleEdit = (testimonial) => {
-    setAuthor(testimonial.author);
-    setContent(testimonial.content);
-    setImage(null);
-    setPreviewImage(getImageUrl(testimonial.image));
-    setEditingId(testimonial._id);
+  const handleEdit = (client) => {
+    setName(client.name);
+    setLogo(null);
+    setPreviewLogo(getImageUrl(client.logo));
+    setEditingId(client._id);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (testimonial) => {
-    setTestimonialToDelete(testimonial);
+  const handleDeleteClick = (client) => {
+    setClientToDelete(client);
     setIsDeleteModalOpen(true);
   };
 
   const handleDeleteConfirm = async () => {
-    if (!testimonialToDelete) return;
+    if (!clientToDelete) return;
     try {
-      await api.deleteTestimonial(testimonialToDelete._id);
-      showToast(true, "Testimonial berhasil dihapus!");
-      fetchTestimonials();
+      await api.deleteClient(clientToDelete._id);
+      showToast(true, "Client berhasil dihapus!");
+      fetchClients();
     } catch (error) {
-      console.error("Gagal menghapus testimonial:", error);
-      showToast(false, "Gagal menghapus testimonial.");
+      console.error("Gagal menghapus client:", error);
+      showToast(false, "Gagal menghapus client.");
     } finally {
       setIsDeleteModalOpen(false);
-      setTestimonialToDelete(null);
+      setClientToDelete(null);
     }
   };
 
@@ -111,10 +113,9 @@ const TestimonialsAdmin = () => {
   };
 
   const resetForm = () => {
-    setAuthor("");
-    setContent("");
-    setImage(null);
-    setPreviewImage(null);
+    setName("");
+    setLogo(null);
+    setPreviewLogo(null);
     setEditingId(null);
     setIsModalOpen(false);
   };
@@ -138,7 +139,7 @@ const TestimonialsAdmin = () => {
       transition={{ duration: 0.5 }}
       className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg"
     >
-      <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Kelola Testimonials</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">Kelola Clients</h2>
 
       {/* Notifikasi Toast */}
       {toast.show && (
@@ -149,12 +150,12 @@ const TestimonialsAdmin = () => {
         />
       )}
 
-      {/* Tombol Tambah Testimonial */}
+      {/* Tombol Tambah Client */}
       <button
         onClick={() => setIsModalOpen(true)}
         className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
       >
-        <FiPlus className="text-lg" /> Tambah Testimonial
+        <FiPlus className="text-lg" /> Tambah Client
       </button>
 
       {/* Modal untuk Form Tambah/Edit */}
@@ -173,49 +174,42 @@ const TestimonialsAdmin = () => {
               className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-2xl"
             >
               <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">
-                {editingId ? "Edit Testimonial" : "Tambah Testimonial"}
+                {editingId ? "Edit Client" : "Tambah Client"}
               </h3>
               <form onSubmit={handleSubmit}>
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Nama Pengguna:</label>
+                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Nama Client:</label>
                   <input
                     type="text"
-                    placeholder="Nama Pengguna"
-                    value={author}
-                    onChange={(e) => setAuthor(e.target.value)}
+                    placeholder="Nama Client"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 dark:bg-gray-700 dark:text-gray-300"
                     required
                   />
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Pesan Testimonial:</label>
-                  <textarea
-                    placeholder="Pesan Testimonial"
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 dark:bg-gray-700 dark:text-gray-300"
-                    rows="4"
-                    required
-                  ></textarea>
-                </div>
-
-                <div className="mb-4">
-                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Gambar:</label>
+                  <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Logo Client:</label>
                   <input
                     type="file"
-                    onChange={handleImageChange}
+                    accept="image/*"
+                    onChange={handleLogoChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300"
                   />
+                  <p className="text-sm text-gray-500 mt-1">Format: PNG, JPG, atau SVG (Ukuran maksimal: 2MB)</p>
                 </div>
 
-                {(previewImage || (editingId && testimonials.find((t) => t._id === editingId)?.image)) && (
+                {(previewLogo || (editingId && clients.find((c) => c._id === editingId)?.logo)) && (
                   <div className="mb-4">
-                    <img
-                      src={previewImage || getImageUrl(testimonials.find((t) => t._id === editingId).image)}
-                      alt="Preview Gambar"
-                      className="w-24 h-auto object-cover"
-                    />
+                    <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2">Preview Logo:</label>
+                    <div className="w-32 h-32 border border-gray-300 rounded-lg flex items-center justify-center bg-white p-4">
+                      <img
+                        src={previewLogo || getImageUrl(clients.find((c) => c._id === editingId).logo)}
+                        alt="Preview Logo"
+                        className="max-w-full max-h-full object-contain"
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -255,9 +249,9 @@ const TestimonialsAdmin = () => {
               exit={{ y: -50, opacity: 0 }}
               className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md"
             >
-              <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Hapus Testimonial</h3>
+              <h3 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-100">Hapus Client</h3>
               <p className="text-gray-600 dark:text-gray-300 mb-6">
-                Apakah Anda yakin ingin menghapus testimonial dari <strong>{testimonialToDelete?.author}</strong>?
+                Apakah Anda yakin ingin menghapus client <strong>{clientToDelete?.name}</strong>?
               </p>
               <div className="flex gap-3">
                 <button
@@ -278,45 +272,50 @@ const TestimonialsAdmin = () => {
         )}
       </AnimatePresence>
 
-      {/* Daftar Testimonials */}
-      <ul className="space-y-4">
-        {testimonials.map((testimonial) => (
-          <li
-            key={testimonial._id}
-            className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
+      {/* Daftar Clients */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {clients.map((client) => (
+          <div
+            key={client._id}
+            className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg shadow-sm hover:shadow-md transition duration-300"
           >
-            <div className="flex items-center gap-4">
-              {testimonial.image && (
-                <img
-                  src={getImageUrl(testimonial.image)}
-                  alt="Testimonial"
-                  className="w-20 h-20 object-cover rounded-full"
-                />
+            <div className="flex flex-col items-center">
+              {client.logo && (
+                <div className="w-32 h-32 border border-gray-300 rounded-lg flex items-center justify-center bg-white p-4 mb-4">
+                  <img
+                    src={getImageUrl(client.logo)}
+                    alt={client.name}
+                    className="max-w-full max-h-full object-contain"
+                  />
+                </div>
               )}
-              <div>
-                <strong className="text-gray-800 dark:text-gray-300">{testimonial.author}</strong>
-                <p className="text-gray-600 dark:text-gray-400">{testimonial.content}</p>
+              <strong className="text-gray-800 dark:text-gray-300 text-center mb-4">{client.name}</strong>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleEdit(client)}
+                  className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
+                >
+                  <FiEdit className="text-lg" />
+                </button>
+                <button
+                  onClick={() => handleDeleteClick(client)}
+                  className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                >
+                  <FiTrash2 className="text-lg" />
+                </button>
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(testimonial)}
-                className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
-              >
-                <FiEdit className="text-lg" />
-              </button>
-              <button
-                onClick={() => handleDeleteClick(testimonial)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-              >
-                <FiTrash2 className="text-lg" />
-              </button>
-            </div>
-          </li>
+          </div>
         ))}
-      </ul>
+      </div>
+
+      {clients.length === 0 && (
+        <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+          <p className="text-lg">Belum ada client. Tambahkan client pertama Anda!</p>
+        </div>
+      )}
     </motion.div>
   );
 };
 
-export default TestimonialsAdmin;
+export default ClientsAdmin;

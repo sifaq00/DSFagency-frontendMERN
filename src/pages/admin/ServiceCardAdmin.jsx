@@ -4,6 +4,13 @@ import { FiEdit, FiTrash2, FiPlus, FiX, FiSave } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import ToastNotification from "../../components/ToastNotification";
 
+// Helper function untuk construct image URL
+const getImageUrl = (imagePath) => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace('/api', '');
+  return `${baseUrl}${imagePath}`;
+};
+
 const ServiceCardAdmin = () => {
   const [serviceCards, setServiceCards] = useState([]);
   const [title, setTitle] = useState("");
@@ -72,7 +79,7 @@ const ServiceCardAdmin = () => {
     setTitle(serviceCard.title);
     setDescription(serviceCard.description);
     setImage(null);
-    setPreviewImage(`http://localhost:5000${serviceCard.image}`);
+    setPreviewImage(getImageUrl(serviceCard.image));
     setEditingId(serviceCard._id);
     setIsModalOpen(true);
   };
@@ -195,7 +202,7 @@ const ServiceCardAdmin = () => {
                 {(previewImage || (editingId && serviceCards.find((sc) => sc._id === editingId)?.image)) && (
                   <div className="mb-4">
                     <img
-                      src={previewImage || `http://localhost:5000${serviceCards.find((sc) => sc._id === editingId).image}`}
+                      src={previewImage || getImageUrl(serviceCards.find((sc) => sc._id === editingId).image)}
                       alt="Preview Gambar"
                       className="w-24 h-24 object-cover rounded-lg"
                     />
@@ -233,7 +240,7 @@ const ServiceCardAdmin = () => {
             <div className="flex items-center gap-4">
               {serviceCard.image && (
                 <img
-                  src={`http://localhost:5000${serviceCard.image}`}
+                  src={getImageUrl(serviceCard.image)}
                   alt="Service Card"
                   className="w-20 h-20 object-cover rounded-full"
                 />
