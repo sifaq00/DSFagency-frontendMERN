@@ -5,6 +5,13 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import api from "../api/axios";
 
+// Helper function untuk construct image URL
+const getImageUrl = (imagePath) => {
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace('/api', '');
+  return `${baseUrl}${imagePath}`;
+};
+
 const ServiceCard = ({
   image,
   title,
@@ -39,7 +46,7 @@ const ServiceCard = ({
       <div className="w-full h-40 md:h-48 flex justify-center items-center mb-4">
         <div className="w-full h-full rounded-xl p-4 flex items-center justify-center">
           <img
-            src={`${import.meta.env.VITE_API_URL.replace("/api", "")}${image}`}
+            src={getImageUrl(image)}
             alt={title}
             loading="lazy"
             className="w-full h-full object-contain"
@@ -126,7 +133,7 @@ const ServiceDetail = ({
       <div className="w-full md:w-6/12">
         <div className="rounded-3xl  backdrop-blur-xl p-6">
           <img
-            src={`http://localhost:5000${image}`}
+            src={getImageUrl(image)}
             alt={title}
             loading="lazy"
             className="w-full h-52 md:h-96 object-contain"
