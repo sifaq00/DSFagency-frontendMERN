@@ -2,8 +2,49 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ========================================
+   CSS VARIABLES - THEME SYSTEM
+======================================== */
+:root {
+  /* Light Theme (Default from backup) */
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-border: #e5e7eb;
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #374151;
+  --color-text-muted: #6b7280;
+  
+  --color-primary: #F97316;
+  --color-primary-dark: #EA580C;
+  --color-primary-light: #FDBA74;
+  
+  --shadow-glow: 0 0 50px rgba(249,115,22,0.25);
+  --shadow-soft: 0 10px 40px rgba(0,0,0,0.1);
+}
+
+.dark {
+  /* Dark Theme */
+  --color-background: #0B0A0F;
+  --color-surface: #0B0A0F;
+  --color-border: #26242D;
+  
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: #D1D5DB;
+  --color-text-muted: #9CA3AF;
+  
+  --color-primary: #F97316;
+  --color-primary-dark: #EA580C;
+  --color-primary-light: #FDBA74;
+  
+  --shadow-glow: 0 0 50px rgba(249,115,22,0.35);
+  --shadow-soft: 0 10px 40px rgba(0,0,0,0.45);
+}
+
 html,
 body,
 #root {
-  background-color: #0B0A0F;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }

@@ -3,9 +3,12 @@ import AOS from "aos";
 import "aos/dist/aos.css";
 import api from "../api/axios";
 
+const DEFAULT_ABOUT_IMAGE = "https://cdn.builder.io/api/v1/image/assets/a4bcc66c8e6243ab9c4aea4abeb04592/ae659ff6a3de1a351bb7e304a29e7fd3995beb833d99d3425031561b7bf6dd9a";
+
 const AboutUs = () => {
   const [aboutContent, setAboutContent] = useState("");
   const [advantages, setAdvantages] = useState([]);
+  const [aboutImage, setAboutImage] = useState(DEFAULT_ABOUT_IMAGE);
 
   useEffect(() => {
     AOS.init({ duration: 1000, once: true, easing: "ease-out-cubic" });
@@ -17,6 +20,7 @@ const AboutUs = () => {
       const res = await api.getAboutUs();
       setAboutContent(res.data.content || "");
       setAdvantages(res.data.advantages || []);
+      setAboutImage(res.data.aboutImage || DEFAULT_ABOUT_IMAGE);
     } catch (err) {
       console.error("Gagal mengambil data About Us:", err);
     }
@@ -25,7 +29,7 @@ const AboutUs = () => {
   return (
     <section
       id="About"
-      className="relative w-full bg-surface pt-40 pb-40"
+      className="relative w-full bg-surface pt-24 pb-24"
     >
       
      <div className="relative max-w-[1200px] mx-auto px-6">
@@ -66,9 +70,9 @@ const AboutUs = () => {
             {/* IMAGE WRAPPER */}
             <div className="relative">
               <img
-                src="https://cdn.builder.io/api/v1/image/assets/a4bcc66c8e6243ab9c4aea4abeb04592/ae659ff6a3de1a351bb7e304a29e7fd3995beb833d99d3425031561b7bf6dd9a"
+                src={aboutImage}
                 alt="About us"
-                className="w-full aspect-square object-cover rounded-2xl drop-shadow-[0_25px_50px_rgba(0,0,0,0.55)]"
+                className="w-full aspect-square object-cover drop-shadow-[0_25px_50px_rgba(0,0,0,0.55)]"
               />
             </div>
           </div>
@@ -103,7 +107,7 @@ const AboutUs = () => {
             </ul>
 
             <a
-              href="https://wa.me/6281234567890"
+              href="https://wa.me/6285643610817"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex mt-10 px-8 py-3 rounded-full bg-primary text-white font-semibold shadow-glow hover:bg-primary-dark transition-transform hover:scale-105"

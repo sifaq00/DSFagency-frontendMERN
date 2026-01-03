@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
-import { FiEdit, FiTrash2, FiPlus, FiX, FiSave } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiX, FiSave, FiLoader } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import ToastNotification from "../../components/ToastNotification";
+import AnimatedToast from "../../components/AnimatedToast";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Helper function untuk construct image URL
 const getImageUrl = (imagePath) => {
@@ -19,6 +20,9 @@ const ServiceCardAdmin = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ show: false, success: false, message: "" });
 
   useEffect(() => {
@@ -27,11 +31,14 @@ const ServiceCardAdmin = () => {
 
   const fetchServiceCards = async () => {
     try {
+      setIsFetching(true);
       const response = await api.getServiceCards();
       setServiceCards(response.data);
     } catch (error) {
       console.error("Gagal mengambil data service cards:", error);
-      showToast(false, "Gagal mengambil data service cards.");
+      showToast(false, { title: "Gagal", description: "Gagal mengambil data service cards." });
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -47,11 +54,12 @@ const ServiceCardAdmin = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      showToast(false, "Judul dan deskripsi harus diisi!");
+      showToast(false, { title: "Validasi", description: "Judul dan deskripsi harus diisi!" });
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
@@ -61,17 +69,19 @@ const ServiceCardAdmin = () => {
 
       if (editingId) {
         await api.updateServiceCard(editingId, formData);
-        showToast(true, "Service card berhasil diperbarui!");
+        showToast(true, { title: "Sukses", description: "Service card berhasil diperbarui!" });
       } else {
         await api.addServiceCard(formData);
-        showToast(true, "Service card berhasil ditambahkan!");
+        showToast(true, { title: "Sukses", description: "Service card berhasil ditambahkan!" });
       }
 
       resetForm();
       fetchServiceCards();
     } catch (error) {
       console.error("Gagal menyimpan service card:", error);
-      showToast(false, "Gagal menyimpan service card.");
+      showToast(false, { title: "Gagal", description: "Gagal menyimpan service card." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,12 +97,15 @@ const ServiceCardAdmin = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin ingin menghapus service card ini?")) return;
     try {
+      setIsDeleting(true);
       await api.deleteServiceCard(id);
-      showToast(true, "Service card berhasil dihapus!");
+      showToast(true, { title: "Sukses", description: "Service card berhasil dihapus!" });
       fetchServiceCards();
     } catch (error) {
       console.error("Gagal menghapus service card:", error);
-      showToast(false, "Gagal menghapus service card.");
+      showToast(false, { title: "Gagal", description: "Gagal menghapus service card." });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -113,10 +126,7 @@ const ServiceCardAdmin = () => {
     setToast({
       show: true,
       success,
-      message: {
-        title: success ? "Sukses" : "Gagal",
-        description: message,
-      },
+      message,
     });
     setTimeout(() => setToast({ show: false }), 3000);
   };
@@ -132,20 +142,26 @@ const ServiceCardAdmin = () => {
 
       {/* Notifikasi Toast */}
       {toast.show && (
-        <ToastNotification
+        <AnimatedToast
           message={toast.message}
           type={toast.success ? "success" : "error"}
           onClose={() => setToast({ show: false })}
         />
       )}
 
-      {/* Tombol Tambah Service Card */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
-      >
-        <FiPlus className="text-lg" /> Tambah Service Card
-      </button>
+      {isFetching ? (
+        <LoadingSpinner size="lg" />
+      ) : (
+        <>
+          {/* Tombol Tambah Service Card */}
+          <motion.button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FiPlus className="text-lg" /> Tambah Service Card
+          </motion.button>
 
       {/* Modal untuk Form Tambah/Edit */}
       <AnimatePresence>
@@ -210,19 +226,26 @@ const ServiceCardAdmin = () => {
                 )}
 
                 <div className="flex gap-3">
-                  <button
+                  <motion.button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
-                    <FiSave className="text-lg" /> {editingId ? "Update" : "Tambah"}
-                  </button>
-                  <button
+                    {isSubmitting ? <FiLoader className="text-lg animate-spin" /> : <FiSave className="text-lg" />}
+                    {isSubmitting ? "Menyimpan..." : editingId ? "Update" : "Tambah"}
+                  </motion.button>
+                  <motion.button
                     type="button"
                     onClick={handleCancel}
-                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
                     <FiX className="text-lg" /> Batal
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             </motion.div>
@@ -232,41 +255,54 @@ const ServiceCardAdmin = () => {
 
       {/* Daftar Service Cards */}
       <ul className="space-y-4">
-        {serviceCards.map((serviceCard) => (
-          <li
-            key={serviceCard._id}
-            className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
-          >
-            <div className="flex items-center gap-4">
-              {serviceCard.image && (
-                <img
-                  src={getImageUrl(serviceCard.image)}
-                  alt="Service Card"
-                  className="w-20 h-20 object-cover rounded-full"
-                />
-              )}
-              <div>
-                <strong className="text-gray-800 dark:text-gray-300">{serviceCard.title}</strong>
-                <p className="text-gray-600 dark:text-gray-400">{serviceCard.description}</p>
+        <AnimatePresence mode="popLayout">
+          {serviceCards.map((serviceCard, index) => (
+            <motion.li
+              key={serviceCard._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                {serviceCard.image && (
+                  <img
+                    src={getImageUrl(serviceCard.image)}
+                    alt="Service Card"
+                    className="w-20 h-20 object-cover rounded-full"
+                  />
+                )}
+                <div>
+                  <strong className="text-gray-800 dark:text-gray-300">{serviceCard.title}</strong>
+                  <p className="text-gray-600 dark:text-gray-400">{serviceCard.description}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(serviceCard)}
-                className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
-              >
-                <FiEdit className="text-lg" />
-              </button>
-              <button
-                onClick={() => handleDelete(serviceCard._id)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-              >
-                <FiTrash2 className="text-lg" />
-              </button>
-            </div>
-          </li>
-        ))}
+              <div className="flex gap-2">
+                <motion.button
+                  onClick={() => handleEdit(serviceCard)}
+                  className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FiEdit className="text-lg" />
+                </motion.button>
+                <motion.button
+                  onClick={() => handleDelete(serviceCard._id)}
+                  className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDeleting}
+                  whileHover={!isDeleting ? { scale: 1.1 } : {}}
+                  whileTap={!isDeleting ? { scale: 0.9 } : {}}
+                >
+                  <FiTrash2 className="text-lg" />
+                </motion.button>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
       </ul>
+        </>
+      )}
     </motion.div>
   );
 };

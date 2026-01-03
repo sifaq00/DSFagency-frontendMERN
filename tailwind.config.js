@@ -12,25 +12,25 @@ export default {
       },
 
       /* ===============================
-         BRAND COLOR SYSTEM (ORANGE)
+         BRAND COLOR SYSTEM (CSS VARS)
       =============================== */
       colors: {
         primary: {
-          DEFAULT: "#F97316", // orange utama
-          dark: "#EA580C",
-          light: "#FDBA74",
+          DEFAULT: "var(--color-primary)",
+          dark: "var(--color-primary-dark)",
+          light: "var(--color-primary-light)",
         },
 
         accent: "#FFEDD5",
 
-        background: "#0B0A0F", // dark base
-        surface: "#14131A",    // card / section
-        border: "#26242D",
+        background: "var(--color-background)",
+        surface: "var(--color-surface)",
+        border: "var(--color-border)",
 
         text: {
-          primary: "#FFFFFF",
-          secondary: "#D1D5DB",
-          muted: "#9CA3AF",
+          primary: "var(--color-text-primary)",
+          secondary: "var(--color-text-secondary)",
+          muted: "var(--color-text-muted)",
         },
       },
 
@@ -38,8 +38,8 @@ export default {
          EFFECTS
       =============================== */
       boxShadow: {
-        glow: "0 0 50px rgba(249,115,22,0.35)",
-        soft: "0 10px 40px rgba(0,0,0,0.45)",
+        glow: "var(--shadow-glow)",
+        soft: "var(--shadow-soft)",
       },
 
       backgroundImage: {

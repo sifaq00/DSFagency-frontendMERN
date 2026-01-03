@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { motion, AnimatePresence } from "framer-motion";
+import { FiEye, FiTarget, FiStar, FiHeart, FiZap, FiAward } from "react-icons/fi";
 import api from "../api/axios";
 
 const Values = () => {
@@ -30,13 +31,20 @@ const Values = () => {
     fetchValues();
   }, []);
 
+  const coreValues = [
+    { icon: <FiStar />, label: "Quality", color: "from-orange-500 to-amber-600" },
+    { icon: <FiHeart />, label: "Integrity", color: "from-rose-500 to-pink-600" },
+    { icon: <FiZap />, label: "Innovation", color: "from-amber-500 to-yellow-500" },
+    { icon: <FiAward />, label: "Excellence", color: "from-orange-600 to-red-500" },
+  ];
+
   return (
     <section
       id="Values"
-      className="relative w-full bg-surface pt-40 pb-40"
+      className="relative w-full bg-surface pt-24 pb-24"
     >
       <div className="relative max-w-[1200px] mx-auto px-6">
-        {/* ===== GLOW PINNED KE CONTENT ===== */}
+        {/* ===== GLOW ORANGE ===== */}
         <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[260px] bg-primary/15 blur-[160px]" />
         <div className="pointer-events-none absolute bottom-[-120px] right-[-120px] w-[320px] h-[320px] bg-primary/10 blur-[140px]" />
 
@@ -57,26 +65,55 @@ const Values = () => {
           dan dampak nyata bagi pertumbuhan bisnis klien.
         </p>
 
+        {/* CORE VALUES ICONS */}
+        <div 
+          className="mt-12 flex justify-center gap-6 flex-wrap"
+          data-aos="fade-up"
+          data-aos-delay="150"
+        >
+          {coreValues.map((value, index) => (
+            <motion.div
+              key={value.label}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.05, y: -5 }}
+              className="flex flex-col items-center gap-2"
+            >
+              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${value.color} flex items-center justify-center text-white text-2xl shadow-lg`}>
+                {value.icon}
+              </div>
+              <span className="text-sm font-medium text-text-secondary">{value.label}</span>
+            </motion.div>
+          ))}
+        </div>
+
         {/* TAB BUTTONS */}
         <div
-          className="mt-12 flex justify-center gap-6 max-md:flex-col"
+          className="mt-12 flex justify-center gap-6 max-md:flex-col max-md:items-center"
           data-aos="fade-up"
           data-aos-delay="200"
         >
-          {["vision", "mission"].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`px-10 py-3 rounded-full text-lg font-semibold transition-all duration-300
+          {[
+            { id: "vision", label: "Vision", icon: <FiEye /> },
+            { id: "mission", label: "Mission", icon: <FiTarget /> }
+          ].map((tab) => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              className={`flex items-center gap-3 px-10 py-3 rounded-full text-lg font-semibold transition-all duration-300
                 ${
-                  activeTab === tab
+                  activeTab === tab.id
                     ? "bg-primary text-white shadow-glow"
-                    : "border border-border text-text-secondary hover:bg-white/5"
+                    : "border border-border text-text-secondary hover:bg-white/5 hover:border-primary/50"
                 }
               `}
             >
-              {tab === "vision" ? "Vision" : "Mission"}
-            </button>
+              <span className={activeTab === tab.id ? "text-white" : "text-primary"}>{tab.icon}</span>
+              {tab.label}
+            </motion.button>
           ))}
         </div>
 
@@ -86,18 +123,22 @@ const Values = () => {
           data-aos="fade-up"
           data-aos-delay="300"
         >
-          <div className="relative rounded-3xl bg-background/60 backdrop-blur-xl border border-border p-12 max-md:p-8 shadow-soft">
+          <div className="relative rounded-3xl bg-background/60 backdrop-blur-xl border border-border p-12 max-md:p-8 shadow-soft overflow-hidden">
+            {/* Decorative gradient bar */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
+            
             <AnimatePresence mode="wait">
               {loading ? (
-                <motion.p
+                <motion.div
                   key="loading"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="text-center text-text-muted text-lg"
+                  className="flex items-center justify-center gap-3 py-8"
                 >
-                  Memuat data...
-                </motion.p>
+                  <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-text-muted text-lg">Memuat data...</span>
+                </motion.div>
               ) : activeTab === "vision" ? (
                 <motion.div
                   key="vision"
@@ -106,10 +147,15 @@ const Values = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <h3 className="text-3xl font-bold text-text-primary">
-                    Our Vision
-                  </h3>
-                  <p className="mt-6 text-xl leading-relaxed text-text-secondary max-md:text-base">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center text-white text-xl shadow-lg shadow-orange-500/20">
+                      <FiEye />
+                    </div>
+                    <h3 className="text-3xl font-bold text-text-primary">
+                      Our Vision
+                    </h3>
+                  </div>
+                  <p className="text-xl leading-relaxed text-text-secondary max-md:text-base pl-16 max-md:pl-0">
                     {vision}
                   </p>
                 </motion.div>
@@ -121,10 +167,15 @@ const Values = () => {
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ duration: 0.4 }}
                 >
-                  <h3 className="text-3xl font-bold text-text-primary">
-                    Our Mission
-                  </h3>
-                  <p className="mt-6 text-xl leading-relaxed text-text-secondary max-md:text-base">
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xl shadow-lg shadow-amber-500/20">
+                      <FiTarget />
+                    </div>
+                    <h3 className="text-3xl font-bold text-text-primary">
+                      Our Mission
+                    </h3>
+                  </div>
+                  <p className="text-xl leading-relaxed text-text-secondary max-md:text-base pl-16 max-md:pl-0">
                     {mission}
                   </p>
                 </motion.div>

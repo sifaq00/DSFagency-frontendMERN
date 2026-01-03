@@ -4,6 +4,19 @@ import "aos/dist/aos.css";
 import PropTypes from "prop-types";
 import api from "../api/axios";
 
+// Helper function untuk construct image URL
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  // Jika sudah full URL (Cloudinary), return langsung
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Jika local path, tambahkan baseUrl
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+  const baseUrl = apiUrl.replace('/api', '');
+  return `${baseUrl}${imagePath}`;
+};
+
 const TestimonialCard = ({ image, testimonial, author, index }) => {
   const accentBorders = [
     "border-orange-400/60",
@@ -25,7 +38,7 @@ const TestimonialCard = ({ image, testimonial, author, index }) => {
       {/* IMAGE PLATE */}
       <div className="mb-4 rounded-xl bg-white/90 px-6 py-4">
         <img
-          src={`${import.meta.env.VITE_API_URL.replace("/api", "")}${image}`}
+          src={getImageUrl(image)}
           alt={author}
           className="w-auto h-44 object-contain"
         />
@@ -78,7 +91,7 @@ const TestimonialsSection = () => {
     return (
       <section
         id="Testimonials"
-        className="relative w-full bg-surface pt-40 pb-40"
+        className="relative w-full bg-surface pt-24 pb-24"
       >
         <div className="relative max-w-[1200px] mx-auto px-6 text-center">
           <h2
@@ -96,7 +109,7 @@ const TestimonialsSection = () => {
   return (
     <section
       id="Testimonials"
-      className="relative w-full bg-surface pt-40 pb-40"
+      className="relative w-full bg-surface pt-24 pb-24"
     >
       {/* CONTAINER SAMA DENGAN CLIENTS */}
       <div className="relative max-w-[1200px] mx-auto px-6">

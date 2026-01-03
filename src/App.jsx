@@ -1,6 +1,8 @@
 "use client";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import PropTypes from "prop-types";
+import { useEffect } from "react";
+import api from "./api/axios";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Hero from "./components/Hero";
@@ -15,22 +17,44 @@ import Dashboard from "./pages/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import ScrollToTopButton from "./components/ScrollToTopButton";
 
-const MainLayout = ({ children }) => (
-  <div className="flex flex-col min-h-screen bg-background text-text-primary">
-    {/* HEADER FULL WIDTH */}
-    <Header />
+// Initialize theme from localStorage
+const initializeTheme = () => {
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "light") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    // Default to dark
+    document.documentElement.classList.add("dark");
+    if (!savedTheme) localStorage.setItem("theme", "dark");
+  }
+};
 
-    {/* CONTENT */}
-    <main className="flex-1">
-      {children}
-    </main>
+// Run immediately
+initializeTheme();
 
-    {/* FOOTER FULL WIDTH */}
-    <Footer />
+const MainLayout = ({ children }) => {
+  useEffect(() => {
+    // Track kunjungan homepage
+    api.trackVisit("/").catch(() => {});
+  }, []);
 
-    <ScrollToTopButton />
-  </div>
-);
+  return (
+    <div className="relative flex flex-col min-h-screen bg-background text-text-primary transition-colors duration-300">
+      {/* HEADER FULL WIDTH */}
+      <Header />
+
+      {/* CONTENT */}
+      <main className="relative flex-1 z-10">
+        {children}
+      </main>
+
+      {/* FOOTER FULL WIDTH */}
+      <Footer />
+
+      <ScrollToTopButton />
+    </div>
+  );
+};
 
 MainLayout.propTypes = {
   children: PropTypes.node.isRequired,

@@ -7,6 +7,12 @@ import api from "../api/axios";
 
 // Helper function untuk construct image URL
 const getImageUrl = (imagePath) => {
+  if (!imagePath) return '';
+  // Jika sudah full URL (Cloudinary), return langsung
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  // Jika local path, tambahkan baseUrl
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
   const baseUrl = apiUrl.replace('/api', '');
   return `${baseUrl}${imagePath}`;
@@ -183,7 +189,7 @@ const ServicesSection = () => {
 
   if (loading) {
     return (
-      <section id="Services" className="w-full bg-surface pt-40 pb-40">
+      <section id="Services" className="w-full bg-surface pt-24 pb-24">
         <div className="max-w-[1200px] mx-auto px-6 text-center">
           <h2 className="text-3xl md:text-5xl font-bold text-text-primary">
             Services
@@ -195,7 +201,7 @@ const ServicesSection = () => {
   }
 
   return (
-    <section id="Services" className="w-full bg-surface pt-40 pb-40">
+    <section id="Services" className="w-full bg-surface pt-24 pb-24">
       <div className="max-w-[1200px] mx-auto px-6">
         <h2
           data-aos="fade-down"

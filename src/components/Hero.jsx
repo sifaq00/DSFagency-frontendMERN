@@ -1,11 +1,47 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import api from "../api/axios";
 
 const Hero = () => {
+  const [heroData, setHeroData] = useState(null);
+
   useEffect(() => {
     AOS.init({ duration: 1000, once: true, easing: "ease-out-cubic" });
+    
+    // Fetch hero data from API
+    const fetchHero = async () => {
+      try {
+        const response = await api.getHero();
+        setHeroData(response.data);
+      } catch (error) {
+        console.error("Error fetching hero data:", error);
+      }
+    };
+    fetchHero();
   }, []);
+
+  // Handle CTA click
+  const handleCtaClick = (link) => {
+    if (link) {
+      if (link.startsWith("#")) {
+        // Scroll to section
+        const element = document.querySelector(link);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth" });
+        }
+      } else if (link.startsWith("http")) {
+        // Open external link
+        window.open(link, "_blank");
+      } else {
+        // Navigate to internal route
+        window.location.href = link;
+      }
+    }
+  };
+
+  // Default hero image
+  const defaultHeroImage = "https://cdn.builder.io/api/v1/image/assets/a4bcc66c8e6243ab9c4aea4abea04592/66cc472858cafa5ba15543a057de0c839932917918c0da924ea25dcb870ddb65";
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-background text-text-primary">
@@ -25,26 +61,40 @@ const Hero = () => {
             data-aos="fade-right"
           >
             <span className="inline-block mb-6 px-4 py-1 text-sm font-semibold tracking-wide text-primary bg-white/10 rounded-full backdrop-blur">
-              Digital Marketing Agency
+              {heroData?.badgeText || "Digital Marketing Agency"}
             </span>
 
             <h1 className="text-[64px] font-extrabold leading-[72px] uppercase max-md:text-4xl max-md:leading-[48px]">
-              Grow Your <br />
-              <span className="text-primary">Digital Business</span>
+              {heroData?.headline ? (
+                <>
+                  {heroData.headline.split(" ").slice(0, 2).join(" ")} <br />
+                  <span className="text-primary">{heroData.headline.split(" ").slice(2).join(" ")}</span>
+                </>
+              ) : (
+                <>
+                  Grow Your <br />
+                  <span className="text-primary">Digital Business</span>
+                </>
+              )}
             </h1>
 
             <p className="mt-6 text-xl text-text-secondary max-md:text-base">
-              Solusi Digital Marketing profesional untuk UMKM dan bisnis
-              yang ingin berkembang lebih cepat dan terukur.
+              {heroData?.subheadline || "Solusi Digital Marketing profesional untuk UMKM dan bisnis yang ingin berkembang lebih cepat dan terukur."}
             </p>
 
             <div className="flex items-center gap-5 mt-10 max-md:flex-col max-md:items-center">
-              <button className="px-10 py-3 text-lg font-semibold rounded-full bg-primary hover:bg-primary-dark shadow-glow transition transform hover:scale-105">
-                Get Started
+              <button 
+                onClick={() => handleCtaClick(heroData?.ctaLink || "#Contacts")}
+                className="px-10 py-3 text-lg font-semibold rounded-full bg-primary hover:bg-primary-dark shadow-glow transition transform hover:scale-105"
+              >
+                {heroData?.ctaText || "Get Started"}
               </button>
 
-              <button className="px-10 py-3 text-lg font-semibold rounded-full border border-border text-text-primary hover:bg-white/10 transition">
-                Learn More
+              <button 
+                onClick={() => handleCtaClick(heroData?.secondaryCtaLink || "#About")}
+                className="px-10 py-3 text-lg font-semibold rounded-full border border-border text-text-primary hover:bg-white/10 transition"
+              >
+                {heroData?.secondaryCtaText || "Learn More"}
               </button>
             </div>
           </div>
@@ -57,9 +107,9 @@ const Hero = () => {
             <div className="relative">
               <div className="absolute inset-0 rounded-2xl bg-primary/15 blur-2xl -z-10" />
               <img
-                src="https://cdn.builder.io/api/v1/image/assets/a4bcc66c8e6243ab9c4aea4abeb04592/66cc472858cafa5ba15543a057de0c839932917918c0da924ea25dcb870ddb65"
+                src={heroData?.heroImage || defaultHeroImage}
                 alt="Marketing illustration"
-                className="w-full max-w-[420px] rounded-2xl object-cover "
+                className="w-full max-w-[480px] rounded-2xl object-cover"
               />
             </div>
           </div>

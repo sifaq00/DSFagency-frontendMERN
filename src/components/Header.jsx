@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import logoWhite from "../assets/logo-white.png";
+import ThemeToggle from "./ThemeToggle";
 
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,7 +30,7 @@ const Header = () => {
       {/* BACKDROP (SELALU ADA → NO FLICKER) */}
       <div
         className={`absolute inset-0 transition-opacity duration-300
-          backdrop-blur-md bg-background/5
+          backdrop-blur-md bg-background/70
           ${isScrolled ? "opacity-100" : "opacity-0"}
         `}
         style={{ willChange: "opacity" }}
@@ -43,7 +44,7 @@ const Header = () => {
           <img
             src={logoWhite}
             alt="Digital Agency Logo"
-            className="w-[48px] h-auto"
+            className="w-[44px] h-auto dark:brightness-100 brightness-0"
           />
           <h1 className="text-xl font-bold text-primary">
             Digital Agency
@@ -57,36 +58,40 @@ const Header = () => {
               <li
                 key={item}
                 onClick={() => handleScrollToSection(item)}
-                className="relative hover:text-orange-400 cursor-pointer transition group"
+                className="relative hover:text-primary cursor-pointer transition group"
               >
                 {item.replace(/([A-Z])/g, " $1").trim()}
              
-                <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-orange-400 transition-all duration-300 group-hover:w-full"></span>
+                <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-primary transition-all duration-300 group-hover:w-full"></span>
               </li>
             ))}
           </ul>
         </nav>
 
-        
-
-        {/* CTA */}
-        <a
-          href="https://wa.me/6281234567890"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden md:inline-flex px-6 py-2 rounded-full bg-primary text-white font-semibold shadow-glow hover:bg-primary-dark transition"
-        >
-          Hubungi
-        </a>
+        {/* RIGHT SIDE: Theme Toggle + CTA */}
+        <div className="hidden md:flex items-center gap-4">
+          <ThemeToggle />
+          <a
+            href="https://wa.me/6285643610817"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-2 rounded-full bg-primary text-white font-semibold shadow-glow hover:bg-primary-dark transition"
+          >
+            Hubungi
+          </a>
+        </div>
 
         {/* MOBILE TOGGLE */}
-        <button
-          className="md:hidden text-text-primary"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle Menu"
-        >
-          {isOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
+        <div className="md:hidden flex items-center gap-3">
+          <ThemeToggle />
+          <button
+            className="text-text-primary"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle Menu"
+          >
+            {isOpen ? <X size={28} /> : <Menu size={28} />}
+          </button>
+        </div>
       </div>
 
       {/* MOBILE MENU */}

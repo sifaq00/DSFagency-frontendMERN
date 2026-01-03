@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
-import { FiEdit, FiTrash2, FiPlus, FiX, FiSave } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiX, FiSave, FiLoader } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import ToastNotification from "../../components/ToastNotification";
+import AnimatedToast from "../../components/AnimatedToast";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Helper function untuk construct image URL
 const getImageUrl = (imagePath) => {
@@ -21,6 +22,9 @@ const TestimonialsAdmin = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [testimonialToDelete, setTestimonialToDelete] = useState(null);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ show: false, success: false, message: "" });
 
   useEffect(() => {
@@ -29,11 +33,14 @@ const TestimonialsAdmin = () => {
 
   const fetchTestimonials = async () => {
     try {
+      setIsFetching(true);
       const response = await api.getTestimonials();
       setTestimonials(response.data);
     } catch (error) {
       console.error("Gagal mengambil data testimonial:", error);
-      showToast(false, "Gagal mengambil data testimonial.");
+      showToast(false, { title: "Gagal", description: "Gagal mengambil data testimonial." });
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -49,11 +56,12 @@ const TestimonialsAdmin = () => {
     e.preventDefault();
 
     if (!author.trim() || !content.trim()) {
-      showToast(false, "Nama dan pesan harus diisi!");
+      showToast(false, { title: "Validasi", description: "Nama dan pesan harus diisi!" });
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("author", author);
       formData.append("content", content);
@@ -63,17 +71,19 @@ const TestimonialsAdmin = () => {
 
       if (editingId) {
         await api.updateTestimonial(editingId, formData);
-        showToast(true, "Testimonial berhasil diperbarui!");
+        showToast(true, { title: "Sukses", description: "Testimonial berhasil diperbarui!" });
       } else {
         await api.addTestimonial(formData);
-        showToast(true, "Testimonial berhasil ditambahkan!");
+        showToast(true, { title: "Sukses", description: "Testimonial berhasil ditambahkan!" });
       }
 
       resetForm();
       fetchTestimonials();
     } catch (error) {
       console.error("Gagal menyimpan testimonial:", error);
-      showToast(false, "Gagal menyimpan testimonial.");
+      showToast(false, { title: "Gagal", description: "Gagal menyimpan testimonial." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -94,13 +104,15 @@ const TestimonialsAdmin = () => {
   const handleDeleteConfirm = async () => {
     if (!testimonialToDelete) return;
     try {
+      setIsDeleting(true);
       await api.deleteTestimonial(testimonialToDelete._id);
-      showToast(true, "Testimonial berhasil dihapus!");
+      showToast(true, { title: "Sukses", description: "Testimonial berhasil dihapus!" });
       fetchTestimonials();
     } catch (error) {
       console.error("Gagal menghapus testimonial:", error);
-      showToast(false, "Gagal menghapus testimonial.");
+      showToast(false, { title: "Gagal", description: "Gagal menghapus testimonial." });
     } finally {
+      setIsDeleting(false);
       setIsDeleteModalOpen(false);
       setTestimonialToDelete(null);
     }
@@ -123,10 +135,7 @@ const TestimonialsAdmin = () => {
     setToast({
       show: true,
       success,
-      message: {
-        title: success ? "Sukses" : "Gagal",
-        description: message,
-      },
+      message,
     });
     setTimeout(() => setToast({ show: false }), 3000);
   };
@@ -142,20 +151,26 @@ const TestimonialsAdmin = () => {
 
       {/* Notifikasi Toast */}
       {toast.show && (
-        <ToastNotification
+        <AnimatedToast
           message={toast.message}
           type={toast.success ? "success" : "error"}
           onClose={() => setToast({ show: false })}
         />
       )}
 
-      {/* Tombol Tambah Testimonial */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
-      >
-        <FiPlus className="text-lg" /> Tambah Testimonial
-      </button>
+      {isFetching ? (
+        <LoadingSpinner size="lg" />
+      ) : (
+        <>
+          {/* Tombol Tambah Testimonial */}
+          <motion.button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FiPlus className="text-lg" /> Tambah Testimonial
+          </motion.button>
 
       {/* Modal untuk Form Tambah/Edit */}
       <AnimatePresence>
@@ -220,19 +235,26 @@ const TestimonialsAdmin = () => {
                 )}
 
                 <div className="flex gap-3">
-                  <button
+                  <motion.button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
-                    <FiSave className="text-lg" /> {editingId ? "Update" : "Tambah"}
-                  </button>
-                  <button
+                    {isSubmitting ? <FiLoader className="text-lg animate-spin" /> : <FiSave className="text-lg" />}
+                    {isSubmitting ? "Menyimpan..." : editingId ? "Update" : "Tambah"}
+                  </motion.button>
+                  <motion.button
                     type="button"
                     onClick={handleCancel}
-                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
                     <FiX className="text-lg" /> Batal
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             </motion.div>
@@ -260,18 +282,25 @@ const TestimonialsAdmin = () => {
                 Apakah Anda yakin ingin menghapus testimonial dari <strong>{testimonialToDelete?.author}</strong>?
               </p>
               <div className="flex gap-3">
-                <button
+                <motion.button
                   onClick={handleDeleteConfirm}
-                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition duration-300"
+                  className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white px-6 py-3 rounded-lg hover:bg-red-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDeleting}
+                  whileHover={!isDeleting ? { scale: 1.05 } : {}}
+                  whileTap={!isDeleting ? { scale: 0.95 } : {}}
                 >
-                  <FiTrash2 className="text-lg" /> Hapus
-                </button>
-                <button
+                  {isDeleting ? <FiLoader className="text-lg animate-spin" /> : <FiTrash2 className="text-lg" />}
+                  {isDeleting ? "Menghapus..." : "Hapus"}
+                </motion.button>
+                <motion.button
                   onClick={() => setIsDeleteModalOpen(false)}
-                  className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300"
+                  className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDeleting}
+                  whileHover={!isDeleting ? { scale: 1.05 } : {}}
+                  whileTap={!isDeleting ? { scale: 0.95 } : {}}
                 >
                   <FiX className="text-lg" /> Batal
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           </motion.div>
@@ -280,41 +309,53 @@ const TestimonialsAdmin = () => {
 
       {/* Daftar Testimonials */}
       <ul className="space-y-4">
-        {testimonials.map((testimonial) => (
-          <li
-            key={testimonial._id}
-            className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
-          >
-            <div className="flex items-center gap-4">
-              {testimonial.image && (
-                <img
-                  src={getImageUrl(testimonial.image)}
-                  alt="Testimonial"
-                  className="w-20 h-20 object-cover rounded-full"
-                />
-              )}
-              <div>
-                <strong className="text-gray-800 dark:text-gray-300">{testimonial.author}</strong>
-                <p className="text-gray-600 dark:text-gray-400">{testimonial.content}</p>
+        <AnimatePresence mode="popLayout">
+          {testimonials.map((testimonial, index) => (
+            <motion.li
+              key={testimonial._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                {testimonial.image && (
+                  <img
+                    src={getImageUrl(testimonial.image)}
+                    alt="Testimonial"
+                    className="w-20 h-20 object-cover rounded-full"
+                  />
+                )}
+                <div>
+                  <strong className="text-gray-800 dark:text-gray-300">{testimonial.author}</strong>
+                  <p className="text-gray-600 dark:text-gray-400">{testimonial.content}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(testimonial)}
-                className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
-              >
-                <FiEdit className="text-lg" />
-              </button>
-              <button
-                onClick={() => handleDeleteClick(testimonial)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-              >
-                <FiTrash2 className="text-lg" />
-              </button>
-            </div>
-          </li>
-        ))}
+              <div className="flex gap-2">
+                <motion.button
+                  onClick={() => handleEdit(testimonial)}
+                  className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FiEdit className="text-lg" />
+                </motion.button>
+                <motion.button
+                  onClick={() => handleDeleteClick(testimonial)}
+                  className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FiTrash2 className="text-lg" />
+                </motion.button>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
       </ul>
+        </>
+      )}
     </motion.div>
   );
 };

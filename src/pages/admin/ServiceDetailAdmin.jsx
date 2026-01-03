@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
-import { FiEdit, FiTrash2, FiPlus, FiX, FiSave } from "react-icons/fi";
+import { FiEdit, FiTrash2, FiPlus, FiX, FiSave, FiLoader } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import ToastNotification from "../../components/ToastNotification";
+import AnimatedToast from "../../components/AnimatedToast";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 // Helper function untuk construct image URL
 const getImageUrl = (imagePath) => {
@@ -19,6 +20,9 @@ const ServiceDetailAdmin = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [toast, setToast] = useState({ show: false, success: false, message: "" });
 
   useEffect(() => {
@@ -27,11 +31,14 @@ const ServiceDetailAdmin = () => {
 
   const fetchServiceDetails = async () => {
     try {
+      setIsFetching(true);
       const response = await api.getServiceDetails();
       setServiceDetails(response.data);
     } catch (error) {
       console.error("Gagal mengambil data service details:", error);
-      showToast(false, "Gagal mengambil data service details.");
+      showToast(false, { title: "Gagal", description: "Gagal mengambil data service details." });
+    } finally {
+      setIsFetching(false);
     }
   };
 
@@ -47,11 +54,12 @@ const ServiceDetailAdmin = () => {
     e.preventDefault();
 
     if (!title.trim() || !description.trim()) {
-      showToast(false, "Judul dan deskripsi harus diisi!");
+      showToast(false, { title: "Validasi", description: "Judul dan deskripsi harus diisi!" });
       return;
     }
 
     try {
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("title", title);
       formData.append("description", description);
@@ -61,17 +69,19 @@ const ServiceDetailAdmin = () => {
 
       if (editingId) {
         await api.updateServiceDetail(editingId, formData);
-        showToast(true, "Service detail berhasil diperbarui!");
+        showToast(true, { title: "Sukses", description: "Service detail berhasil diperbarui!" });
       } else {
         await api.addServiceDetail(formData);
-        showToast(true, "Service detail berhasil ditambahkan!");
+        showToast(true, { title: "Sukses", description: "Service detail berhasil ditambahkan!" });
       }
 
       resetForm();
       fetchServiceDetails();
     } catch (error) {
       console.error("Gagal menyimpan service detail:", error);
-      showToast(false, "Gagal menyimpan service detail.");
+      showToast(false, { title: "Gagal", description: "Gagal menyimpan service detail." });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -87,12 +97,15 @@ const ServiceDetailAdmin = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Yakin ingin menghapus service detail ini?")) return;
     try {
+      setIsDeleting(true);
       await api.deleteServiceDetail(id);
-      showToast(true, "Service detail berhasil dihapus!");
+      showToast(true, { title: "Sukses", description: "Service detail berhasil dihapus!" });
       fetchServiceDetails();
     } catch (error) {
       console.error("Gagal menghapus service detail:", error);
-      showToast(false, "Gagal menghapus service detail.");
+      showToast(false, { title: "Gagal", description: "Gagal menghapus service detail." });
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -113,10 +126,7 @@ const ServiceDetailAdmin = () => {
     setToast({
       show: true,
       success,
-      message: {
-        title: success ? "Sukses" : "Gagal",
-        description: message,
-      },
+      message,
     });
     setTimeout(() => setToast({ show: false }), 3000);
   };
@@ -132,20 +142,26 @@ const ServiceDetailAdmin = () => {
 
       {/* Notifikasi Toast */}
       {toast.show && (
-        <ToastNotification
+        <AnimatedToast
           message={toast.message}
           type={toast.success ? "success" : "error"}
           onClose={() => setToast({ show: false })}
         />
       )}
 
-      {/* Tombol Tambah Service Detail */}
-      <button
-        onClick={() => setIsModalOpen(true)}
-        className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
-      >
-        <FiPlus className="text-lg" /> Tambah Service Detail
-      </button>
+      {isFetching ? (
+        <LoadingSpinner size="lg" />
+      ) : (
+        <>
+          {/* Tombol Tambah Service Detail */}
+          <motion.button
+            onClick={() => setIsModalOpen(true)}
+            className="mt-4 mb-8 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <FiPlus className="text-lg" /> Tambah Service Detail
+          </motion.button>
 
       {/* Modal untuk Form Tambah/Edit */}
       <AnimatePresence>
@@ -210,19 +226,26 @@ const ServiceDetailAdmin = () => {
                 )}
 
                 <div className="flex gap-3">
-                  <button
+                  <motion.button
                     type="submit"
-                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
-                    <FiSave className="text-lg" /> {editingId ? "Update" : "Tambah"}
-                  </button>
-                  <button
+                    {isSubmitting ? <FiLoader className="text-lg animate-spin" /> : <FiSave className="text-lg" />}
+                    {isSubmitting ? "Menyimpan..." : editingId ? "Update" : "Tambah"}
+                  </motion.button>
+                  <motion.button
                     type="button"
                     onClick={handleCancel}
-                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300"
+                    className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={isSubmitting}
+                    whileHover={!isSubmitting ? { scale: 1.05 } : {}}
+                    whileTap={!isSubmitting ? { scale: 0.95 } : {}}
                   >
                     <FiX className="text-lg" /> Batal
-                  </button>
+                  </motion.button>
                 </div>
               </form>
             </motion.div>
@@ -232,41 +255,54 @@ const ServiceDetailAdmin = () => {
 
       {/* Daftar Service Details */}
       <ul className="space-y-4">
-        {serviceDetails.map((serviceDetail) => (
-          <li
-            key={serviceDetail._id}
-            className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
-          >
-            <div className="flex items-center gap-4">
-              {serviceDetail.image && (
-                <img
-                  src={getImageUrl(serviceDetail.image)}
-                  alt="Service Detail"
-                  className="w-20 h-20 object-cover rounded-full"
-                />
-              )}
-              <div>
-                <strong className="text-gray-800 dark:text-gray-300">{serviceDetail.title}</strong>
-                <p className="text-gray-600 dark:text-gray-400">{serviceDetail.description}</p>
+        <AnimatePresence mode="popLayout">
+          {serviceDetails.map((serviceDetail, index) => (
+            <motion.li
+              key={serviceDetail._id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex justify-between items-center bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-sm"
+            >
+              <div className="flex items-center gap-4">
+                {serviceDetail.image && (
+                  <img
+                    src={getImageUrl(serviceDetail.image)}
+                    alt="Service Detail"
+                    className="w-20 h-20 object-cover rounded-full"
+                  />
+                )}
+                <div>
+                  <strong className="text-gray-800 dark:text-gray-300">{serviceDetail.title}</strong>
+                  <p className="text-gray-600 dark:text-gray-400">{serviceDetail.description}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => handleEdit(serviceDetail)}
-                className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
-              >
-                <FiEdit className="text-lg" />
-              </button>
-              <button
-                onClick={() => handleDelete(serviceDetail._id)}
-                className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300"
-              >
-                <FiTrash2 className="text-lg" />
-              </button>
-            </div>
-          </li>
-        ))}
+              <div className="flex gap-2">
+                <motion.button
+                  onClick={() => handleEdit(serviceDetail)}
+                  className="bg-yellow-500 text-white px-3 py-2 rounded-lg hover:bg-yellow-600 transition duration-300"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                >
+                  <FiEdit className="text-lg" />
+                </motion.button>
+                <motion.button
+                  onClick={() => handleDelete(serviceDetail._id)}
+                  className="bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isDeleting}
+                  whileHover={!isDeleting ? { scale: 1.1 } : {}}
+                  whileTap={!isDeleting ? { scale: 0.9 } : {}}
+                >
+                  <FiTrash2 className="text-lg" />
+                </motion.button>
+              </div>
+            </motion.li>
+          ))}
+        </AnimatePresence>
       </ul>
+        </>
+      )}
     </motion.div>
   );
 };

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   FaMapMarkerAlt,
   FaPhone,
@@ -6,9 +7,48 @@ import {
   FaTwitter,
   FaInstagram,
   FaLinkedin,
+  FaYoutube,
+  FaTiktok,
 } from "react-icons/fa";
+import api from "../api/axios";
 
 const Footer = () => {
+  const [settings, setSettings] = useState(null);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.getSettings();
+        setSettings(response.data);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  // Build social links array based on settings
+  const getSocialLinks = () => {
+    const links = [];
+    if (settings?.facebook) links.push({ icon: FaFacebook, url: settings.facebook });
+    if (settings?.twitter) links.push({ icon: FaTwitter, url: settings.twitter });
+    if (settings?.instagram) links.push({ icon: FaInstagram, url: settings.instagram });
+    if (settings?.linkedin) links.push({ icon: FaLinkedin, url: settings.linkedin });
+    if (settings?.youtube) links.push({ icon: FaYoutube, url: settings.youtube });
+    if (settings?.tiktok) links.push({ icon: FaTiktok, url: settings.tiktok });
+    
+    // Default links if none configured
+    if (links.length === 0) {
+      return [
+        { icon: FaFacebook, url: "#" },
+        { icon: FaTwitter, url: "#" },
+        { icon: FaInstagram, url: "#" },
+        { icon: FaLinkedin, url: "#" },
+      ];
+    }
+    return links;
+  };
+
   return (
     <footer className="relative w-full bg-surface pt-32 pb-10 overflow-hidden">
       {/* ===== DECORATIVE OBJECTS ===== */}
@@ -23,23 +63,23 @@ const Footer = () => {
           <div className="text-center sm:text-left">
             <p className="text-lg leading-relaxed text-text-secondary">
               <span className="text-text-primary font-semibold">
-                DSF Digital Agency
+                {settings?.companyName || "DSF Digital Agency"}
               </span>{" "}
-              — Solusi Digital Marketing untuk UMKM & Bisnis Berkembang.
+              — {settings?.tagline || "Solusi Digital Marketing untuk UMKM & Bisnis Berkembang."}
             </p>
 
             <div className="flex justify-center sm:justify-start gap-4 mt-6">
-              {[FaFacebook, FaTwitter, FaInstagram, FaLinkedin].map(
-                (Icon, i) => (
-                  <a
-                    key={i}
-                    href="#"
-                    className="p-3 rounded-full bg-background/40 backdrop-blur border border-border text-text-secondary hover:text-primary hover:border-primary/50 transition"
-                  >
-                    <Icon className="w-5 h-5" />
-                  </a>
-                )
-              )}
+              {getSocialLinks().map((social, i) => (
+                <a
+                  key={i}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-3 rounded-full bg-background/40 backdrop-blur border border-border text-text-secondary hover:text-primary hover:border-primary/50 transition"
+                >
+                  <social.icon className="w-5 h-5" />
+                </a>
+              ))}
             </div>
           </div>
 
@@ -79,26 +119,26 @@ const Footer = () => {
             <div className="mt-4 space-y-4 text-text-secondary">
               <div className="flex justify-center sm:justify-start items-center gap-3">
                 <FaMapMarkerAlt className="text-primary" />
-                <span>Bantul, Yogyakarta</span>
+                <span>{settings?.address || "Bantul, Yogyakarta"}</span>
               </div>
 
               <div className="flex justify-center sm:justify-start items-center gap-3">
                 <FaPhone className="text-cyan-400" />
                 <a
-                  href="tel:085643610817"
+                  href={`tel:${settings?.phone?.replace(/\D/g, "") || "085643610817"}`}
                   className="hover:text-cyan-400 transition"
                 >
-                  0856-4361-0817
+                  {settings?.phone || "0856-4361-0817"}
                 </a>
               </div>
 
               <div className="flex justify-center sm:justify-start items-center gap-3">
                 <FaEnvelope className="text-violet-400" />
                 <a
-                  href="mailto:dsfproject025@gmail.com"
+                  href={`mailto:${settings?.email || "dsfproject025@gmail.com"}`}
                   className="hover:text-violet-400 transition"
                 >
-                  dsfproject025@gmail.com
+                  {settings?.email || "dsfproject025@gmail.com"}
                 </a>
               </div>
             </div>
@@ -110,7 +150,7 @@ const Footer = () => {
 
         {/* BOTTOM */}
         <div className="text-center text-text-secondary text-sm sm:text-base">
-          <p>© 2025 DSF Digital Agency. All Rights Reserved.</p>
+          <p>© 2025 {settings?.companyName || "DSF Digital Agency"}. All Rights Reserved.</p>
           <div className="flex justify-center gap-3 mt-2">
             <a href="#" className="hover:text-primary transition">
               Privacy Policy

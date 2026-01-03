@@ -1,24 +1,30 @@
 import { useState, useEffect } from "react";
 import api from "../../api/axios";
-import { FiEdit, FiSave, FiX } from "react-icons/fi";
+import { FiEdit, FiSave, FiX, FiLoader } from "react-icons/fi";
 import { motion } from "framer-motion";
-import ToastNotification from "../../components/ToastNotification";
+import AnimatedToast from "../../components/AnimatedToast";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
 const ValuesAdmin = () => {
   const [vision, setVision] = useState("");
   const [mission, setMission] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [toast, setToast] = useState({ show: false, success: false, message: "" });
 
   useEffect(() => {
     const fetchValues = async () => {
       try {
+        setIsFetching(true);
         const response = await api.getValues();
         setVision(response.data.vision);
         setMission(response.data.mission);
       } catch (error) {
         console.error("Gagal mengambil data Values:", error);
+        showToast(false, { title: "Gagal", description: "Gagal mengambil data Values." });
+      } finally {
+        setIsFetching(false);
       }
     };
     fetchValues();
@@ -28,11 +34,11 @@ const ValuesAdmin = () => {
     setLoading(true);
     try {
       const response = await api.updateValues({ vision, mission });
-      showToast(true, "Data berhasil diperbarui!");
+      showToast(true, { title: "Sukses", description: "Data berhasil diperbarui!" });
       console.log("Update berhasil:", response.data);
       setIsEditing(false);
     } catch (error) {
-      showToast(false, "Gagal memperbarui data.");
+      showToast(false, { title: "Gagal", description: "Gagal memperbarui data." });
       console.error("Error saat update Values:", error);
     } finally {
       setLoading(false);
@@ -51,10 +57,7 @@ const ValuesAdmin = () => {
     setToast({
       show: true,
       success,
-      message: {
-        title: success ? "Sukses" : "Gagal",
-        description: message,
-      },
+      message,
     });
     setTimeout(() => setToast({ show: false }), 3000);
   };
@@ -70,15 +73,16 @@ const ValuesAdmin = () => {
 
       {/* Notifikasi Toast */}
       {toast.show && (
-        <ToastNotification
+        <AnimatedToast
           message={toast.message}
           type={toast.success ? "success" : "error"}
           onClose={() => setToast({ show: false })}
         />
       )}
 
-      {/* Tampilkan data jika tidak dalam mode edit */}
-      {!isEditing ? (
+      {isFetching ? (
+        <LoadingSpinner size="lg" />
+      ) : !isEditing ? (
         <div>
           {/* Tampilkan Our Vision */}
           <div className="bg-gray-50 dark:bg-gray-700 p-6 rounded-lg mb-6">
@@ -93,12 +97,14 @@ const ValuesAdmin = () => {
           </div>
 
           {/* Tombol Edit */}
-          <button
+          <motion.button
             onClick={handleEdit}
             className="mt-4 flex items-center justify-center gap-2 bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition duration-300"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
             <FiEdit className="text-lg" /> Edit
-          </button>
+          </motion.button>
         </div>
       ) : (
         /* Tampilkan form edit jika dalam mode edit */
@@ -129,19 +135,25 @@ const ValuesAdmin = () => {
 
           {/* Tombol Simpan dan Batal */}
           <div className="flex gap-3">
-            <button
+            <motion.button
               onClick={handleSave}
-              className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300"
+              className="flex-1 flex items-center justify-center gap-2 bg-green-500 text-white px-6 py-3 rounded-lg hover:bg-green-600 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={loading}
+              whileHover={!loading ? { scale: 1.05 } : {}}
+              whileTap={!loading ? { scale: 0.95 } : {}}
             >
-              <FiSave className="text-lg" /> {loading ? "Menyimpan..." : "Simpan Perubahan"}
-            </button>
-            <button
+              {loading ? <FiLoader className="text-lg animate-spin" /> : <FiSave className="text-lg" />}
+              {loading ? "Menyimpan..." : "Simpan Perubahan"}
+            </motion.button>
+            <motion.button
               onClick={handleCancel}
-              className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300"
+              className="flex-1 flex items-center justify-center gap-2 bg-gray-400 text-white px-6 py-3 rounded-lg hover:bg-gray-500 transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              whileHover={!loading ? { scale: 1.05 } : {}}
+              whileTap={!loading ? { scale: 0.95 } : {}}
             >
               <FiX className="text-lg" /> Batal
-            </button>
+            </motion.button>
           </div>
         </div>
       )}

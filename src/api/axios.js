@@ -118,6 +118,61 @@ const api = {
     instance.delete(`/client/${id}`, {
       headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
     }),
+
+  getAnalytics: (days = 14) => instance.get(`/analytics?days=${days}`),
+  trackVisit: (path = "/") => {
+    // Generate or get visitor ID from localStorage
+    let visitorId = localStorage.getItem("visitorId");
+    if (!visitorId) {
+      visitorId = `v_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      localStorage.setItem("visitorId", visitorId);
+    }
+    return instance.post("/analytics/track", { path, visitorId });
+  },
+
+  // Contact Messages
+  getContacts: () =>
+    instance.get("/contact", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
+  getUnreadCount: () =>
+    instance.get("/contact/unread", {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
+  submitContact: (data) => instance.post("/contact", data),
+  markContactAsRead: (id) =>
+    instance.put(`/contact/${id}/read`, {}, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
+  replyContact: (id, replyMessage) =>
+    instance.put(`/contact/${id}/reply`, { replyMessage }, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
+  deleteContact: (id) =>
+    instance.delete(`/contact/${id}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+    }),
+
+  // Hero Section
+  getHero: () => instance.get("/hero"),
+  updateHero: (data) => {
+    const token = localStorage.getItem("token");
+    // Don't set Content-Type manually for FormData - browser will set it with proper boundary
+    return instance.put("/hero", data, {
+      headers: { 
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  },
+
+  // Site Settings
+  getSettings: () => instance.get("/settings"),
+  updateSettings: (data) => {
+    const token = localStorage.getItem("token");
+    return instance.put("/settings", data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
 };
 
 export default api;

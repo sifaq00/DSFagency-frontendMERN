@@ -1,46 +1,75 @@
 import { useEffect, useRef, useState } from "react";
-import emailjs from "@emailjs/browser";
 import { FaPhoneAlt, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import api from "../api/axios";
 
 const ContactSection = () => {
+  const [settings, setSettings] = useState(null);
+  
   useEffect(() => {
     AOS.init({ duration: 1000, once: true });
+    
+    // Fetch site settings for contact info
+    const fetchSettings = async () => {
+      try {
+        const response = await api.getSettings();
+        setSettings(response.data);
+      } catch (error) {
+        console.error("Error fetching settings:", error);
+      }
+    };
+    fetchSettings();
   }, []);
 
   const form = useRef();
   const [isSending, setIsSending] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageType, setMessageType] = useState(""); // success or error
 
-  const sendEmail = (e) => {
+  const sendEmail = async (e) => {
     e.preventDefault();
     setIsSending(true);
+    setMessage("");
 
-    emailjs
-      .sendForm(
-        "YOUR_SERVICE_ID",
-        "YOUR_TEMPLATE_ID",
-        form.current,
-        "YOUR_PUBLIC_KEY"
-      )
-      .then(
-        () => {
-          setMessage("Pesan berhasil dikirim!");
-          setIsSending(false);
-          form.current.reset();
-        },
-        () => {
-          setMessage("Gagal mengirim pesan. Coba lagi.");
-          setIsSending(false);
-        }
-      );
+    const formData = new FormData(form.current);
+    const data = {
+      name: formData.get("user_name"),
+      email: formData.get("user_email"),
+      message: formData.get("message"),
+    };
+
+    try {
+      await api.submitContact(data);
+      setMessage("Pesan berhasil dikirim! Kami akan segera menghubungi Anda.");
+      setMessageType("success");
+      form.current.reset();
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Gagal mengirim pesan. Coba lagi.");
+      setMessageType("error");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Helper to format WhatsApp link
+  const getWhatsAppLink = () => {
+    if (settings?.whatsapp) {
+      return `https://wa.me/${settings.whatsapp}`;
+    }
+    return "https://wa.me/6285643610817";
+  };
+
+  // Helper to format email link
+  const getEmailLink = () => {
+    const email = settings?.email || "dsfproject025@gmail.com";
+    return `https://mail.google.com/mail/?view=cm&fs=1&to=${email}`;
   };
 
   return (
     <section
       id="Contacts"
-      className="relative w-full bg-surface pt-40 pb-40 overflow-hidden"
+      className="relative w-full bg-surface pt-24 pb-24 overflow-hidden"
     >
       {/* AMBIENT GLOW */}
       <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
@@ -77,28 +106,28 @@ const ContactSection = () => {
 
             <div className="space-y-5 text-text-secondary text-lg font-medium">
               <a
-                href="https://wa.me/6285643610817"
+                href={getWhatsAppLink()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-4 hover:text-cyan-400 transition"
               >
                 <FaPhoneAlt className="text-cyan-400 text-2xl" />
-                <span>0856-4361-0817</span>
+                <span>{settings?.phone || "0856-4361-0817"}</span>
               </a>
 
               <a
-                href="https://mail.google.com/mail/?view=cm&fs=1&to=dsfproject025@gmail.com"
+                href={getEmailLink()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-4 hover:text-violet-400 transition"
               >
                 <FaEnvelope className="text-violet-400 text-2xl" />
-                <span>dsfproject025@gmail.com</span>
+                <span>{settings?.email || "dsfproject025@gmail.com"}</span>
               </a>
 
               <div className="flex items-center space-x-4 text-text-secondary">
                 <FaMapMarkerAlt className="text-orange-400 text-2xl" />
-                <span>Bantul, Yogyakarta</span>
+                <span>{settings?.address || "Bantul, Yogyakarta"}</span>
               </div>
             </div>
           </div>
@@ -174,7 +203,9 @@ const ContactSection = () => {
               </div>
 
               {message && (
-                <p className="text-text-secondary mt-3">{message}</p>
+                <p className={`mt-3 ${messageType === "success" ? "text-green-400" : "text-red-400"}`}>
+                  {message}
+                </p>
               )}
             </form>
           </div>
