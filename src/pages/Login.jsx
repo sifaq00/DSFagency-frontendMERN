@@ -6,14 +6,19 @@ import login from "../assets/logo2.png";
 import { motion } from "framer-motion";
 
 const Login = () => {
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(null);
+    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError(null);
         try {
             const response = await axios.post("/auth/login", { email, password });
             console.log("Login berhasil, token:", response.data.token);
@@ -22,6 +27,8 @@ const Login = () => {
         } catch (err) {
             console.error("Login error:", err.response?.data?.message);
             setError(err.response?.data?.message || "Login gagal!");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -63,7 +70,7 @@ const Login = () => {
                         <div className="mb-4">
                             <input
                                 type="email"
-                                className="w-full p-3 md:p-4 border-2 rounded-lg bg-orange-50 focus:ring-4 focus:ring-orange-300 text-base md:text-lg transition-all duration-300 focus:border-orange-500"
+                                className="w-full p-3 md:p-4 border-2 rounded-lg bg-orange-50 focus:ring-4 focus:ring-orange-300 text-base md:text-lg transition-all duration-300 focus:border-orange-500 text-gray-800 placeholder-gray-500"
                                 placeholder="Enter email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -73,7 +80,7 @@ const Login = () => {
                         <div className="mb-4 relative">
                             <input
                                 type={showPassword ? "text" : "password"}
-                                className="w-full p-3 md:p-4 border-2 rounded-lg bg-orange-50 focus:ring-4 focus:ring-orange-300 text-base md:text-lg transition-all duration-300 focus:border-orange-500"
+                                className="w-full p-3 md:p-4 border-2 rounded-lg bg-orange-50 focus:ring-4 focus:ring-orange-300 text-base md:text-lg transition-all duration-300 focus:border-orange-500 text-gray-800 placeholder-gray-500"
                                 placeholder="Password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -87,12 +94,19 @@ const Login = () => {
                                 {showPassword ? <FaEyeSlash /> : <FaEye />}
                             </button>
                         </div>
-                        <motion.button 
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 md:p-4 rounded-lg text-base md:text-lg font-semibold hover:from-orange-600 hover:to-orange-700 transition-all duration-300 shadow-lg mt-4 md:mt-6"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
+                        <motion.button
+                            className={`w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white p-3 md:p-4 rounded-lg text-base md:text-lg font-semibold transition-all duration-300 shadow-lg mt-4 md:mt-6 flex items-center justify-center ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:from-orange-600 hover:to-orange-700'}`}
+                            whileHover={!loading ? { scale: 1.05 } : {}}
+                            whileTap={!loading ? { scale: 0.95 } : {}}
+                            disabled={loading}
                         >
-                            Login
+                            {loading && (
+                                <svg className="animate-spin mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                            )}
+                            {loading ? 'Loading...' : 'Login'}
                         </motion.button>
                     </form>
                 </div>

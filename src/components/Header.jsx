@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, X } from "lucide-react";
 import logoWhite from "../assets/logo-white.png";
 import ThemeToggle from "./ThemeToggle";
@@ -7,6 +7,18 @@ import ThemeToggle from "./ThemeToggle";
 const Header = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const mobileMenuRef = useRef(null);
+  // Close mobile menu on click outside
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -95,29 +107,53 @@ const Header = () => {
       </div>
 
       {/* MOBILE MENU */}
-      {isOpen && (
-        <div className="md:hidden bg-surface border-t border-border">
-          <ul className="flex flex-col px-6 py-6 gap-4 text-text-secondary">
+      {/* MOBILE MENU + BACKDROP */}
+      <div
+        className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${isOpen ? "pointer-events-auto" : "pointer-events-none"}`}
+        style={{
+          background: isOpen ? "rgba(20,20,20,0.35)" : "rgba(20,20,20,0)",
+          backdropFilter: isOpen ? "blur(6px)" : "none",
+        }}
+        aria-hidden={!isOpen}
+      >
+        <nav
+          ref={mobileMenuRef}
+          className={`absolute top-0 right-0 h-full w-4/5 max-w-xs bg-surface shadow-xl border-l border-border transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "translate-x-full"}`}
+        >
+          <div className="flex items-center justify-between px-6 py-5 border-b border-border">
+            <div className="flex items-center gap-2">
+              <img src={logoWhite} alt="Logo" className="w-8 h-auto dark:brightness-100 brightness-0" />
+              <span className="font-bold text-lg text-primary">Digital Agency</span>
+            </div>
+            <button
+              className="text-text-primary p-1 rounded-full hover:bg-primary/10 transition"
+              onClick={() => setIsOpen(false)}
+              aria-label="Tutup Menu"
+            >
+              <X size={28} />
+            </button>
+          </div>
+          <ul className="flex flex-col px-6 py-6 gap-4 text-text-secondary text-lg font-medium">
             {["About", "Values", "Clients", "Testimonials", "Services", "Contacts"].map((item) => (
               <li
                 key={item}
                 onClick={() => handleScrollToSection(item)}
-                className="cursor-pointer hover:text-primary transition"
+                className="cursor-pointer hover:text-primary transition relative group py-2"
               >
-                {item}
+                <span className="group-hover:underline group-hover:decoration-primary group-hover:decoration-2 transition-all">{item.replace(/([A-Z])/g, " $1").trim()}</span>
               </li>
             ))}
             <a
-              href="https://wa.me/6281234567890"
+              href="https://wa.me/6285643610817"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-4 py-2 text-center rounded-full bg-primary text-white font-semibold"
+              className="mt-4 py-2 rounded-full bg-primary text-white font-semibold shadow-glow text-center hover:bg-primary-dark transition"
             >
               Hubungi
             </a>
           </ul>
-        </div>
-      )}
+        </nav>
+      </div>
     </header>
   );
 };

@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+
 import api from "../api/axios";
+import heroImg from "../assets/hero.png";
 
 const Hero = () => {
   const [heroData, setHeroData] = useState(null);
@@ -40,8 +42,8 @@ const Hero = () => {
     }
   };
 
-  // Default hero image
-  const defaultHeroImage = "https://cdn.builder.io/api/v1/image/assets/a4bcc66c8e6243ab9c4aea4abea04592/66cc472858cafa5ba15543a057de0c839932917918c0da924ea25dcb870ddb65";
+
+  // Pakai hero.png lokal agar load cepat
 
   return (
     <section className="relative min-h-screen w-full overflow-hidden bg-background text-text-primary">
@@ -107,9 +109,11 @@ const Hero = () => {
             <div className="relative">
               <div className="absolute inset-0 rounded-2xl bg-primary/15 blur-2xl -z-10" />
               <img
-                src={heroData?.heroImage || defaultHeroImage}
+                src={heroData?.heroImage || heroImg}
                 alt="Marketing illustration"
-                className="w-full max-w-[480px] rounded-2xl object-cover"
+                className="w-full max-w-[1100px] md:max-w-[1100px] sm:max-w-[480px] rounded-2xl object-cover"
+                loading="eager"
+                style={{ minHeight: 320 }}
               />
             </div>
           </div>
